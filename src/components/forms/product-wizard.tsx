@@ -202,9 +202,15 @@ export function ProductWizard({
               <Input {...fieldProps("title", errors.title, true)} value={details.title} onChange={(e) => setDetails({ ...details, title: e.target.value })} maxLength={80} autoFocus />
             </Field>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <Field id="categoryId" label="קטגוריה" error={errors.categoryId} required>
-                <Select {...fieldProps("categoryId", errors.categoryId)} value={details.categoryId} onChange={(e) => setDetails({ ...details, categoryId: e.target.value })}>
-                  <option value="">בחירת קטגוריה</option>
+              <Field
+                id="categoryId"
+                label="קטגוריה"
+                error={errors.categoryId}
+                required
+                hint={categories.length === 0 ? "עדיין לא הוגדרו קטגוריות באתר. מנהל האתר צריך להוסיף קטגוריות לפני שניתן לפרסם מוצרים." : undefined}
+              >
+                <Select {...fieldProps("categoryId", errors.categoryId, categories.length === 0)} value={details.categoryId} onChange={(e) => setDetails({ ...details, categoryId: e.target.value })} disabled={categories.length === 0}>
+                  <option value="">{categories.length === 0 ? "אין קטגוריות זמינות" : "בחירת קטגוריה"}</option>
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
