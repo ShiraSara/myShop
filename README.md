@@ -113,7 +113,11 @@ npm run start
 1. מעלים את הקוד ל-GitHub (ראו למטה).
 2. יוצרים DB מנוהל (Neon / Supabase / Railway) ומעתיקים את `DATABASE_URL`.
 3. יוצרים bucket ציבורי לקריאה (R2 / Supabase Storage / S3) ומפתחות גישה, ומגדירים `STORAGE_DRIVER=s3` ואת שאר משתני `STORAGE_*`.
-4. ב-Vercel: Import Project, מגדירים את כל משתני הסביבה, ומשנים את Build Command ל-`npx prisma migrate deploy && npm run build`.
+4. ב-Vercel: Import Project ומגדירים את כל משתני הסביבה. **משאירים את Build Command על ברירת המחדל.** Vercel מריץ אוטומטית את הסקריפט `vercel-build`:
+   `prisma generate && node scripts/vercel-migrate.mjs && next build`
+   - `prisma migrate deploy` רץ רק ב-Production (`VERCEL_ENV=production`), כך ש-Preview לא משנה את מסד הנתונים. כדי לאלץ הרצה (למשל ב-Preview עם DB נפרד) מגדירים `RUN_MIGRATIONS=true`.
+   - לחיבור Neon עם pooler: אם מוגדר `DATABASE_URL_UNPOOLED` (חיבור Neon ↔ Vercel מגדיר אותו אוטומטית) או `DIRECT_URL`, ה-migration משתמש בו. אחרת משתמשים ב-`DATABASE_URL`.
+   - migration שנכשל עוצר את ה-build. אין seed אוטומטי (`npm run db:seed` מריצים ידנית בלבד).
 5. מגדירים דומיין, ומעדכנים את `NEXT_PUBLIC_SITE_URL`.
 6. (מומלץ) Cron יומי שמריץ `npm run cleanup:images` (ניקוי תמונות יתומות, sessions שפגו ושורות rate-limit ישנות).
 
