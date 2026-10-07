@@ -15,7 +15,7 @@ next-env.d.ts
 .env.test
 
 # local uploads (storage driver = local)
-storage/
+/storage/
 
 # testing
 coverage/
