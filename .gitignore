@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+
+# next.js / build
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# env & secrets
+.env
+.env*.local
+.env.production
+.env.test
+
+# local uploads (storage driver = local)
+storage/
+
+# testing
+coverage/
+playwright-report/
+test-results/
+blob-report/
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+.vercel
