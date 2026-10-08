@@ -3,7 +3,7 @@ import sharp from "sharp";
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES } from "@/lib/constants";
 import { randomSuffix } from "@/lib/utils";
 import { db } from "../db";
-import { ForbiddenError, NotFoundError, ValidationError } from "../errors";
+import { AppError, ForbiddenError, NotFoundError, StorageFailedError, ValidationError } from "../errors";
 import { getStorage } from "../storage";
 
 const MAX_DIMENSION = 1600;
@@ -54,7 +54,15 @@ export async function processAndStoreImage(
 
   const now = new Date();
   const key = `products/${now.getUTCFullYear()}/${String(now.getUTCMonth() + 1).padStart(2, "0")}/${uploaderId}-${Date.now()}-${randomSuffix(10)}.webp`;
-  const { url } = await getStorage().put(key, output.data, "image/webp");
+  const storage = getStorage(); // throws StorageNotConfiguredError when storage isn't set up for this environment
+  let url: string;
+  try {
+    ({ url } = await storage.put(key, output.data, "image/webp"));
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    console.error("[storage] upload failed", key, error);
+    throw new StorageFailedError();
+  }
 
   const image = await db.productImage.create({
     data: {
@@ -77,12 +85,19 @@ export async function deleteImage(userId: string, imageId: string) {
   if (image.uploaderId !== userId) throw new ForbiddenError();
   if (image.productId) throw new ValidationError("לא ניתן למחוק תמונה של מוצר מפורסם מכאן");
   await db.productImage.delete({ where: { id: imageId } });
-  await getStorage().delete(image.storageKey).catch((e) => console.error("[storage] delete failed", e));
+  await deleteStoredFiles([image.storageKey]);
 }
 
 /** Removes files from storage (best effort) — used after product / image deletion. */
 export async function deleteStoredFiles(keys: string[]) {
-  const storage = getStorage();
+  if (keys.length === 0) return;
+  let storage;
+  try {
+    storage = getStorage();
+  } catch (e) {
+    console.error("[storage] delete skipped — storage not configured", keys, e);
+    return;
+  }
   await Promise.all(keys.map((k) => storage.delete(k).catch((e) => console.error("[storage] delete failed", k, e))));
 }
 

@@ -5,7 +5,7 @@
 export class AppError extends Error {
   constructor(
     message: string,
-    public readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION" | "RATE_LIMITED" | "CONFLICT",
+    public readonly code: "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION" | "RATE_LIMITED" | "CONFLICT" | "STORAGE_NOT_CONFIGURED" | "STORAGE_FAILED",
     public readonly status: number,
   ) {
     super(message);
@@ -46,6 +46,20 @@ export class RateLimitError extends AppError {
 export class ConflictError extends AppError {
   constructor(message: string) {
     super(message, "CONFLICT", 409);
+  }
+}
+
+/** Image storage is not configured for this environment (e.g. Vercel without STORAGE_DRIVER=s3). */
+export class StorageNotConfiguredError extends AppError {
+  constructor(message = "העלאת תמונות אינה זמינה כרגע: אחסון התמונות לא הוגדר בשרת. אנא פנו למנהל האתר.") {
+    super(message, "STORAGE_NOT_CONFIGURED", 503);
+  }
+}
+
+/** The storage provider rejected or failed the request (network, permissions, bucket…). */
+export class StorageFailedError extends AppError {
+  constructor(message = "שמירת התמונה נכשלה. נסו שוב בעוד מספר רגעים.") {
+    super(message, "STORAGE_FAILED", 502);
   }
 }
 
